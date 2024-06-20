@@ -1,0 +1,148 @@
+;;
+;; Header files for LiquidityPool
+;; NOTE: declarations are sorted for optimal order
+;;
+
+;; __tact_verify_address
+slice __tact_verify_address(slice address) inline;
+
+;; __tact_load_address
+(slice, slice) __tact_load_address(slice cs) inline;
+
+;; __tact_store_address
+builder __tact_store_address(builder b, slice address) inline;
+
+;; __tact_my_balance
+int __tact_my_balance() inline;
+
+;; __tact_not_null
+forall X -> X __tact_not_null(X x) inline;
+
+;; __tact_context_get
+(int, slice, int, slice) __tact_context_get() inline;
+
+;; __tact_context_get_sender
+slice __tact_context_get_sender() inline;
+
+;; __tact_store_bool
+builder __tact_store_bool(builder b, int v) inline;
+
+;; $Deploy$_load
+(slice, ((int))) $Deploy$_load(slice sc_0) inline;
+
+;; $DeployOk$_store
+builder $DeployOk$_store(builder build_0, (int) v) inline;
+
+;; $DeployOk$_store_cell
+cell $DeployOk$_store_cell((int) v) inline;
+
+;; $Add_Liquidity$_load
+(slice, ((slice, int, slice, int))) $Add_Liquidity$_load(slice sc_0) inline;
+
+;; $SwapTokenA$_load
+(slice, ((int, slice))) $SwapTokenA$_load(slice sc_0) inline;
+
+;; $SwapTokenB$_load
+(slice, ((int, slice))) $SwapTokenB$_load(slice sc_0) inline;
+
+;; $TransferRequest$_store
+builder $TransferRequest$_store(builder build_0, (int, int, slice, slice, int, slice) v) inline_ref;
+
+;; $TransferRequest$_store_cell
+cell $TransferRequest$_store_cell((int, int, slice, slice, int, slice) v) inline;
+
+;; $TokenBalanceQuery$_store
+builder $TokenBalanceQuery$_store(builder build_0, (slice) v) inline;
+
+;; $TokenBalanceQuery$_store_cell
+cell $TokenBalanceQuery$_store_cell((slice) v) inline;
+
+;; $TokenTransferInternal$_store
+builder $TokenTransferInternal$_store(builder build_0, (int, int, slice, slice, int, slice) v) inline_ref;
+
+;; $TokenTransferInternal$_store_cell
+cell $TokenTransferInternal$_store_cell((int, int, slice, slice, int, slice) v) inline;
+
+;; $LiquidityPool$_store
+builder $LiquidityPool$_store(builder build_0, (slice, slice, int, int, int, int, int) v) inline;
+
+;; $LiquidityPool$_load
+(slice, ((slice, slice, int, int, int, int, int))) $LiquidityPool$_load(slice sc_0) inline;
+
+;; $StateInit$_not_null
+((cell, cell)) $StateInit$_not_null(tuple v) inline;
+
+;; $LiquidityPool$init$_load
+(slice, ((slice, slice, int))) $LiquidityPool$init$_load(slice sc_0) inline;
+
+;; $LiquidityPool$_contract_init
+(slice, slice, int, int, int, int, int) $LiquidityPool$_contract_init(slice $token0, slice $token1, int $fee_percent) impure inline_ref;
+
+;; $LiquidityPool$_contract_load
+(slice, slice, int, int, int, int, int) $LiquidityPool$_contract_load() impure inline_ref;
+
+;; $LiquidityPool$_contract_store
+() $LiquidityPool$_contract_store((slice, slice, int, int, int, int, int) v) impure inline;
+
+;; $global_emptyCell
+cell $global_emptyCell() impure inline;
+
+;; $Cell$_fun_asSlice
+slice $Cell$_fun_asSlice(cell $self) impure inline;
+
+;; $global_emptySlice
+slice $global_emptySlice() impure inline;
+
+;; $global_send
+() $global_send((int, slice, int, int, cell, cell, cell) $params) impure inline_ref;
+
+;; $SendParameters$_constructor_to_value_bounce_mode_body
+((int, slice, int, int, cell, cell, cell)) $SendParameters$_constructor_to_value_bounce_mode_body(slice to, int value, int bounce, int mode, cell body) inline;
+
+;; $TokenTransferInternal$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload
+((int, int, slice, slice, int, slice)) $TokenTransferInternal$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload(int queryId, int amount, slice from, slice response_destination, int forward_ton_amount, slice forward_payload) inline;
+
+;; $LiquidityPool$_fun_sqrt
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_sqrt((slice, slice, int, int, int, int, int) $self, int $x) impure inline_ref;
+
+;; $LiquidityPool$_fun_calculate_initial_supply
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_calculate_initial_supply((slice, slice, int, int, int, int, int) $self, int $amount_token0, int $amount_token1) impure inline_ref;
+
+;; $LiquidityPool$_fun_add_liquidity
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_add_liquidity((slice, slice, int, int, int, int, int) $self, slice $token0, slice $token1, int $amount_token0, int $amount_token1) impure inline_ref;
+
+;; $SendParameters$_constructor_to_value_bounce_body
+((int, slice, int, int, cell, cell, cell)) $SendParameters$_constructor_to_value_bounce_body(slice to, int value, int bounce, cell body) inline;
+
+;; $TransferRequest$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload
+((int, int, slice, slice, int, slice)) $TransferRequest$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload(int queryId, int amount, slice from, slice response_destination, int forward_ton_amount, slice forward_payload) inline;
+
+;; $TokenBalanceQuery$_constructor_address
+((slice)) $TokenBalanceQuery$_constructor_address(slice address) inline;
+
+;; $TokenBalanceResponse$_constructor_balance
+((int)) $TokenBalanceResponse$_constructor_balance(int balance) inline;
+
+;; $LiquidityPool$_fun_token_balance
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_token_balance((slice, slice, int, int, int, int, int) $self, slice $token) impure inline_ref;
+
+;; $LiquidityPool$_fun_swap_tokenA
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_swap_tokenA((slice, slice, int, int, int, int, int) $self, int $amount_token0, slice $receiver) impure inline_ref;
+
+;; $LiquidityPool$_fun_swap_tokenB
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_swap_tokenB((slice, slice, int, int, int, int, int) $self, int $amount_token1, slice $receiver) impure inline_ref;
+
+;; $LiquidityPool$_fun_getBalance
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_getBalance((slice, slice, int, int, int, int, int) $self, slice $token) impure inline_ref;
+
+;; $SendParameters$_constructor_bounce_to_value_mode_body_code_data
+((int, slice, int, int, cell, cell, cell)) $SendParameters$_constructor_bounce_to_value_mode_body_code_data(int bounce, slice to, int value, int mode, cell body, cell code, cell data) inline;
+
+;; $LiquidityPool$_fun_forward
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_forward((slice, slice, int, int, int, int, int) $self, slice $to, cell $body, int $bounce, tuple $init) impure inline_ref;
+
+;; $LiquidityPool$_fun_notify
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_notify((slice, slice, int, int, int, int, int) $self, cell $body) impure inline;
+
+;; $DeployOk$_constructor_queryId
+((int)) $DeployOk$_constructor_queryId(int queryId) inline;

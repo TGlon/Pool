@@ -1,0 +1,232 @@
+#pragma version =0.4.4;
+#pragma allow-post-modification;
+#pragma compute-asm-ltr;
+
+#include "tact_LiquidityPool.headers.fc";
+#include "tact_LiquidityPool.stdlib.fc";
+#include "tact_LiquidityPool.storage.fc";
+
+;;
+;; Contract LiquidityPool functions
+;;
+
+(slice, slice, int, int, int, int, int) $LiquidityPool$_contract_init(slice $token0, slice $token1, int $fee_percent) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = (null(), null(), null(), null(), null(), null(), null());
+    $self'token0 = $token0;
+    $self'token1 = $token1;
+    $self'fee0 = 0;
+    $self'fee1 = 0;
+    $self'fee_percent = $fee_percent;
+    $self'lsp_supply = 0;
+    $self'query_counter = 0;
+    return ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter);
+}
+
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_sqrt((slice, slice, int, int, int, int, int) $self, int $x) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    if (($x == 0)) {
+        return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), 0);
+    }
+    int $z = (($x + 1) / 2);
+    int $y = $x;
+    while (($z < $y)) {
+        $y = $z;
+        $z = ((($x / $z) + $z) / 2);
+    }
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), $y);
+}
+
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_calculate_initial_supply((slice, slice, int, int, int, int, int) $self, int $amount_token0, int $amount_token1) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    int $product = ($amount_token0 * $amount_token1);
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_sqrt($product));
+}
+
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_add_liquidity((slice, slice, int, int, int, int, int) $self, slice $token0, slice $token1, int $amount_token0, int $amount_token1) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    var ($ctx'bounced, $ctx'sender, $ctx'value, $ctx'raw) = __tact_context_get();
+    throw_unless(30737, ($ctx'value > 0));
+    throw_unless(39422, ($amount_token0 > 0));
+    throw_unless(3149, ($amount_token1 > 0));
+    int $supply_to_add = ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_calculate_initial_supply($amount_token0, $amount_token1);
+    throw_unless(30582, ($supply_to_add > 0));
+    $self'lsp_supply = ($self'lsp_supply + $supply_to_add);
+    throw_unless(7013, ($self'lsp_supply > 0));
+    $global_send($SendParameters$_constructor_to_value_bounce_mode_body($token0, 0, false, 3, $TokenTransferInternal$_store_cell($TokenTransferInternal$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload($self'query_counter, $amount_token0, $ctx'sender, my_address(), 0, $global_emptySlice()))));
+    $global_send($SendParameters$_constructor_to_value_bounce_mode_body($token1, 0, false, 3, $TokenTransferInternal$_store_cell($TokenTransferInternal$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload($self'query_counter, $amount_token1, $ctx'sender, my_address(), 0, $global_emptySlice()))));
+    $self'query_counter = ($self'query_counter + 1);
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_token_balance((slice, slice, int, int, int, int, int) $self, slice $token) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    var ($balance_query'address) = $TokenBalanceQuery$_constructor_address(my_address());
+    $global_send($SendParameters$_constructor_to_value_bounce_body($token, 0, false, $TokenBalanceQuery$_store_cell(($balance_query'address))));
+    var ($response'balance) = $TokenBalanceResponse$_constructor_balance(0);
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), $response'balance);
+}
+
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_swap_tokenA((slice, slice, int, int, int, int, int) $self, int $amount_token0, slice $receiver) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    var ($ctx'bounced, $ctx'sender, $ctx'value, $ctx'raw) = __tact_context_get();
+    int $token0_balance = ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_token_balance($self'token0);
+    int $token1_balance = ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_token_balance($self'token1);
+    int $amount_token1 = (($amount_token0 * $token1_balance) / ($token0_balance + $amount_token0));
+    int $fee = (($amount_token1 * $self'fee_percent) / 100);
+    $amount_token1 = ($amount_token1 - $fee);
+    $self'fee1 = ($self'fee1 + $fee);
+    $global_send($SendParameters$_constructor_to_value_bounce_body($self'token0, $amount_token0, true, $TransferRequest$_store_cell($TransferRequest$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload(0, $amount_token0, my_address(), $receiver, 0, $global_emptySlice()))));
+    $global_send($SendParameters$_constructor_to_value_bounce_body($ctx'sender, $amount_token1, true, $TransferRequest$_store_cell($TransferRequest$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload(0, $amount_token1, my_address(), $receiver, 0, $global_emptySlice()))));
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+((slice, slice, int, int, int, int, int), ()) $LiquidityPool$_fun_swap_tokenB((slice, slice, int, int, int, int, int) $self, int $amount_token1, slice $receiver) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    var ($ctx'bounced, $ctx'sender, $ctx'value, $ctx'raw) = __tact_context_get();
+    int $token0_balance = ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_token_balance($self'token0);
+    int $token1_balance = ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_token_balance($self'token1);
+    int $amount_token0 = (($amount_token1 * $token0_balance) / ($token1_balance + $amount_token1));
+    int $fee = (($amount_token0 * $self'fee_percent) / 100);
+    $amount_token0 = ($amount_token0 - $fee);
+    $self'fee0 = ($self'fee0 + $fee);
+    $global_send($SendParameters$_constructor_to_value_bounce_body($self'token1, $amount_token1, true, $TransferRequest$_store_cell($TransferRequest$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload(0, $amount_token1, my_address(), $receiver, 0, $global_emptySlice()))));
+    $global_send($SendParameters$_constructor_to_value_bounce_body($ctx'sender, $amount_token0, true, $TransferRequest$_store_cell($TransferRequest$_constructor_queryId_amount_from_response_destination_forward_ton_amount_forward_payload(0, $amount_token0, my_address(), $receiver, 0, $global_emptySlice()))));
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_fun_getBalance((slice, slice, int, int, int, int, int) $self, slice $token) impure inline_ref {
+    var (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)) = $self;
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_token_balance($token));
+}
+
+;;
+;; Receivers of a Contract LiquidityPool
+;;
+
+(((slice, slice, int, int, int, int, int)), ()) $LiquidityPool$_internal_binary_Add_Liquidity((slice, slice, int, int, int, int, int) $self, (slice, int, slice, int) $msg) impure inline {
+    var ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter) = $self;
+    var ($msg'token0, $msg'amount_token0, $msg'token1, $msg'amount_token1) = $msg;
+    ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_add_liquidity($msg'token0, $msg'token1, $msg'amount_token0, $msg'amount_token1);
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+(((slice, slice, int, int, int, int, int)), ()) $LiquidityPool$_internal_binary_SwapTokenA((slice, slice, int, int, int, int, int) $self, (int, slice) $msg) impure inline {
+    var ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter) = $self;
+    var ($msg'amountToken0, $msg'receiver) = $msg;
+    ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_swap_tokenA($msg'amountToken0, $msg'receiver);
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+(((slice, slice, int, int, int, int, int)), ()) $LiquidityPool$_internal_binary_SwapTokenB((slice, slice, int, int, int, int, int) $self, (int, slice) $msg) impure inline {
+    var ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter) = $self;
+    var ($msg'amountToken1, $msg'receiver) = $msg;
+    ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_swap_tokenB($msg'amountToken1, $msg'receiver);
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+(((slice, slice, int, int, int, int, int)), ()) $LiquidityPool$_internal_binary_Deploy((slice, slice, int, int, int, int, int) $self, (int) $deploy) impure inline {
+    var ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter) = $self;
+    var ($deploy'queryId) = $deploy;
+    ($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter)~$LiquidityPool$_fun_notify($DeployOk$_store_cell($DeployOk$_constructor_queryId($deploy'queryId)));
+    return (($self'token0, $self'token1, $self'fee0, $self'fee1, $self'fee_percent, $self'lsp_supply, $self'query_counter), ());
+}
+
+;;
+;; Get methods of a Contract LiquidityPool
+;;
+
+_ %getBalance(slice $$token) method_id(106323) {
+    slice $token = __tact_verify_address($$token);
+    var self = $LiquidityPool$_contract_load();
+    var res = self~$LiquidityPool$_fun_getBalance($token);
+    return res;
+}
+
+_ supported_interfaces() method_id {
+    return (
+        "org.ton.introspection.v0"H >> 128,
+        "org.ton.abi.ipfs.v0"H >> 128,
+        "org.ton.deploy.lazy.v0"H >> 128,
+        "org.ton.debug.v0"H >> 128,
+        "org.ton.chain.workchain.v0"H >> 128
+    );
+}
+
+_ get_abi_ipfs() method_id {
+    return "ipfs://Qmejanm1CvniCGoYMfVRWxTHtoq9zY4i4AfngsdKdCVMMo";
+}
+
+_ lazy_deployment_completed() method_id {
+    return get_data().begin_parse().load_int(1);
+}
+
+;;
+;; Routing of a Contract LiquidityPool
+;;
+
+((slice, slice, int, int, int, int, int), int) $LiquidityPool$_contract_router_internal((slice, slice, int, int, int, int, int) self, int msg_bounced, slice in_msg) impure inline_ref {
+    ;; Handle bounced messages
+    if (msg_bounced) {
+        return (self, true);
+    }
+    
+    ;; Parse incoming message
+    int op = 0;
+    if (slice_bits(in_msg) >= 32) {
+        op = in_msg.preload_uint(32);
+    }
+    
+    
+    ;; Receive Add_Liquidity message
+    if (op == 2899598583) {
+        var msg = in_msg~$Add_Liquidity$_load();
+        self~$LiquidityPool$_internal_binary_Add_Liquidity(msg);
+        return (self, true);
+    }
+    
+    ;; Receive SwapTokenA message
+    if (op == 2313297038) {
+        var msg = in_msg~$SwapTokenA$_load();
+        self~$LiquidityPool$_internal_binary_SwapTokenA(msg);
+        return (self, true);
+    }
+    
+    ;; Receive SwapTokenB message
+    if (op == 1836063507) {
+        var msg = in_msg~$SwapTokenB$_load();
+        self~$LiquidityPool$_internal_binary_SwapTokenB(msg);
+        return (self, true);
+    }
+    
+    ;; Receive Deploy message
+    if (op == 2490013878) {
+        var msg = in_msg~$Deploy$_load();
+        self~$LiquidityPool$_internal_binary_Deploy(msg);
+        return (self, true);
+    }
+    
+    return (self, false);
+}
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+    
+    ;; Context
+    var cs = in_msg_cell.begin_parse();
+    var msg_flags = cs~load_uint(4);
+    var msg_bounced = -(msg_flags & 1);
+    slice msg_sender_addr = __tact_verify_address(cs~load_msg_addr());
+    __tact_context = (msg_bounced, msg_sender_addr, msg_value, cs);
+    __tact_context_sender = msg_sender_addr;
+    
+    ;; Load contract data
+    var self = $LiquidityPool$_contract_load();
+    
+    ;; Handle operation
+    int handled = self~$LiquidityPool$_contract_router_internal(msg_bounced, in_msg);
+    
+    ;; Throw if not handled
+    throw_unless(130, handled);
+    
+    ;; Persist state
+    $LiquidityPool$_contract_store(self);
+}
